@@ -345,42 +345,47 @@ button:hover {
 
 .view-toggle {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 15px;
+    right: 15px;
     z-index: 1000;
     display: flex;
-    gap: 5px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-    border-radius: 12px;
-    background: rgba(255,255,255,0.95);
-    backdrop-filter: blur(10px);
+    gap: 0;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    border-radius: 16px;
+    background: rgba(255,255,255,0.98);
+    backdrop-filter: blur(15px);
     overflow: hidden;
     cursor: move;
     user-select: none;
-    transition: all 0.3s ease;
-    border: 1px solid rgba(255,255,255,0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255,255,255,0.4);
 }
 
 .view-toggle:hover {
-    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-    background: rgba(255,255,255,0.98);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    background: rgba(255,255,255,1);
+    transform: translateY(-2px);
 }
 
 .view-toggle.dragging {
-    transform: scale(1.05);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+    transform: scale(1.08) translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
     z-index: 9999;
 }
 
 .view-toggle button {
-    padding: 8px 12px;
-    border: 1px solid #007cba;
+    padding: 10px 16px;
+    border: none;
     background: white;
     color: #007cba;
     cursor: pointer;
     border-radius: 0;
-    font-size: 12px;
-    border-right: 1px solid #dee2e6;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    border-right: 1px solid rgba(222,226,230,0.5);
 }
 
 .view-toggle button:last-child {
@@ -388,23 +393,41 @@ button:hover {
 }
 
 .view-toggle button:first-child {
-    border-top-left-radius: 12px;
-    border-bottom-left-radius: 12px;
+    border-top-left-radius: 16px;
+    border-bottom-left-radius: 16px;
 }
 
 .view-toggle button:last-child {
-    border-top-right-radius: 12px;
-    border-bottom-right-radius: 12px;
+    border-top-right-radius: 16px;
+    border-bottom-right-radius: 16px;
+    border-right: none;
+}
+
+.view-toggle button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    transition: left 0.5s;
 }
 
 .view-toggle button.active {
     background: #007cba;
     color: white;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.view-toggle button:hover {
-    background: #005a8b;
-    color: white;
+.view-toggle button:hover:not(.active) {
+    background: #f8f9fa;
+    color: #005a8b;
+    transform: translateY(-1px);
+}
+
+.view-toggle button:hover::before {
+    left: 100%;
 }
 
 .main-table-container {
@@ -637,42 +660,45 @@ button:hover {
     z-index: 1000;
     display: flex;
     flex-direction: column;
-    gap: 5px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-    border-radius: 12px;
-    background: rgba(255,255,255,0.95);
-    backdrop-filter: blur(10px);
-    padding: 8px;
+    gap: 8px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    border-radius: 16px;
+    background: rgba(255,255,255,0.98);
+    backdrop-filter: blur(15px);
+    padding: 12px;
     cursor: move;
     user-select: none;
-    transition: all 0.3s ease;
-    border: 1px solid rgba(255,255,255,0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255,255,255,0.4);
+    max-width: 220px;
 }
 
 .map-controls:hover {
-    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-    background: rgba(255,255,255,0.98);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    background: rgba(255,255,255,1);
+    transform: translateY(-2px);
 }
 
 .map-controls.dragging {
-    transform: scale(1.05);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+    transform: scale(1.08) translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
     z-index: 9999;
 }
 
 .control-group-header {
     background: linear-gradient(135deg, #007cba, #005a8b);
     color: white;
-    padding: 6px 12px;
-    margin: -8px -8px 8px -8px;
-    border-radius: 12px 12px 8px 8px;
-    font-size: 11px;
-    font-weight: bold;
+    padding: 8px 16px;
+    margin: -12px -12px 10px -12px;
+    border-radius: 16px 16px 10px 10px;
+    font-size: 12px;
+    font-weight: 600;
     text-align: center;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
     text-transform: uppercase;
     cursor: move;
     position: relative;
+    box-shadow: 0 2px 8px rgba(0,124,186,0.3);
 }
 
 .control-group-header::after {
@@ -686,39 +712,58 @@ button:hover {
 }
 
 .map-controls button {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border: 2px solid #007cba;
     background: white;
     color: #007cba;
     cursor: pointer;
-    border-radius: 8px;
-    font-size: 16px;
+    border-radius: 12px;
+    font-size: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin: 2px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 3px 8px rgba(0,124,186,0.15);
+    margin: 3px;
+    position: relative;
+    overflow: hidden;
+}
+
+.map-controls button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    transition: left 0.5s;
 }
 
 .map-controls button:hover:not(:disabled) {
     background: #007cba;
     color: white;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0,124,186,0.3);
+    transform: translateY(-2px) scale(1.05);
+}
+
+.map-controls button:hover:not(:disabled)::before {
+    left: 100%;
 }
 
 .map-controls button:disabled {
-    background: #f5f5f5;
-    color: #ccc;
-    border-color: #ddd;
+    background: #f8f9fa;
+    color: #adb5bd;
+    border-color: #e9ecef;
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: 0.5;
+    box-shadow: none;
 }
 
 .map-controls button:active:not(:disabled) {
-    transform: scale(0.95);
+    transform: translateY(-1px) scale(0.98);
+    transition: all 0.1s ease;
 }
 
 /* Import/Export button styling */
@@ -745,62 +790,91 @@ button:hover {
 /* Map info controls (left side) */
 .map-info-controls {
     position: absolute;
-    top: 160px;
-    left: 10px;
+    top: 120px;
+    left: 15px;
     z-index: 1000;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 8px;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 10px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    border: 1px solid rgba(255,255,255,0.4);
 }
 
 .map-info-controls button {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
     border: 2px solid #007cba;
     background: white;
     color: #007cba;
     cursor: pointer;
-    border-radius: 6px;
-    font-size: 16px;
+    border-radius: 12px;
+    font-size: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    transition: all 0.2s ease;
+    box-shadow: 0 3px 8px rgba(0,124,186,0.15);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.map-info-controls button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    transition: left 0.5s;
 }
 
 .map-info-controls button:hover {
     background: #007cba;
     color: white;
-    transform: scale(1.05);
+    transform: translateY(-2px) scale(1.08);
+    box-shadow: 0 6px 16px rgba(0,124,186,0.3);
+}
+
+.map-info-controls button:hover::before {
+    left: 100%;
 }
 
 .map-info-controls button:active {
-    transform: scale(0.95);
+    transform: translateY(-1px) scale(1.02);
+    transition: all 0.1s ease;
 }
 
 /* Map panels */
 .map-panel {
     position: absolute;
-    top: 160px;
-    left: 60px;
+    top: 120px;
+    left: 90px;
     z-index: 999;
-    background: white;
+    background: rgba(255,255,255,0.98);
+    backdrop-filter: blur(15px);
     border: 2px solid #007cba;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    min-width: 250px;
-    max-width: 350px;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0,124,186,0.2);
+    min-width: 280px;
+    max-width: 400px;
+    transform: translateY(0);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .panel-header {
-    background: #007cba;
+    background: linear-gradient(135deg, #007cba, #005a8b);
     color: white;
-    padding: 10px 15px;
-    border-radius: 6px 6px 0 0;
+    padding: 12px 18px;
+    border-radius: 14px 14px 0 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    box-shadow: 0 2px 8px rgba(0,124,186,0.3);
 }
 
 .panel-header h3 {
@@ -812,25 +886,28 @@ button:hover {
     background: none;
     border: none;
     color: white;
-    font-size: 18px;
+    font-size: 20px;
     cursor: pointer;
     padding: 0;
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 3px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
 }
 
 .panel-close:hover {
-    background: rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.25);
+    transform: scale(1.1);
 }
 
 .panel-content {
-    padding: 15px;
-    background: white;
-    border-radius: 0 0 6px 6px;
+    padding: 18px;
+    background: rgba(255,255,255,0.95);
+    border-radius: 0 0 14px 14px;
+    backdrop-filter: blur(10px);
 }
 
 /* Legend items in panel */
@@ -953,4 +1030,98 @@ button:hover {
 /* Control group label styling - hidden since we have headers now */
 .control-group-label {
     display: none;
+}
+
+/* Responsive design for mobile and tablet */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        height: auto;
+        max-height: 40vh;
+        order: 1;
+    }
+    
+    .map-container {
+        order: 2;
+        height: 60vh;
+    }
+    
+    .map-controls {
+        max-width: 180px;
+        padding: 8px;
+        gap: 6px;
+    }
+    
+    .map-controls button {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+    
+    .map-info-controls {
+        padding: 8px;
+        gap: 6px;
+    }
+    
+    .map-info-controls button {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+    }
+    
+    .map-panel {
+        min-width: 240px;
+        max-width: calc(100vw - 40px);
+        left: 20px;
+        top: 80px;
+    }
+    
+    .view-toggle {
+        top: 10px;
+        right: 10px;
+    }
+    
+    .view-toggle button {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .map-controls {
+        max-width: 160px;
+        padding: 6px;
+        gap: 4px;
+    }
+    
+    .map-controls button {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+    
+    .control-group-header {
+        padding: 6px 12px;
+        font-size: 10px;
+    }
+    
+    .map-info-controls button {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+    
+    .map-panel {
+        min-width: 200px;
+        left: 10px;
+        top: 60px;
+    }
+    
+    .panel-content {
+        padding: 12px;
+    }
 }

@@ -6,12 +6,14 @@ import folium
 import geopandas as gpd
 import pandas as pd
 import json
+import os
 from pathlib import Path
 from pydantic import BaseModel
 import tempfile
 from typing import Dict, Any, List
 
-from map import extract_qpkg_data, find_adjacent_polygons, get_current_gdf
+from land_registry.map import extract_qpkg_data, find_adjacent_polygons, get_current_gdf
+from land_registry.map_controls import map_controls, ControlButton, ControlSelect
 
 
 class PolygonSelection(BaseModel):
@@ -22,16 +24,26 @@ class PolygonSelection(BaseModel):
 
 app = FastAPI()
 
-# Serve static files (HTML, CSS, JS)
-app.mount("/static", StaticFiles(directory="static"), name="static")
+root_folder = os.path.dirname(__file__)
 
-templates = Jinja2Templates(directory="templates")
+# Serve static files (HTML, CSS, JS)
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
+templates = Jinja2Templates(directory="app/templates")
 
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     """Serve the main map application"""
-    return templates.TemplateResponse("map.html", {"request": request})
+    # Generate controls HTML from Python definitions
+    controls_html = map_controls.generate_html()
+    controls_js = map_controls.generate_javascript()
+    
+    return templates.TemplateResponse("map.html", {
+        "request": request,
+        "controls_html": controls_html,
+        "controls_js": controls_js
+    })
 
 
 @app.post("/upload-qpkg/")
@@ -145,9 +157,9 @@ async def get_attributes():
 async def get_cadastral_structure():
     """Get the Italian cadastral data structure from JSON file"""
     try:
-        cadastral_file_path = Path("../data/cadastral_structure.json")
+        cadastral_file_path = os.path.join(root_folder, "../data/cadastral_structure.json")
         
-        if not cadastral_file_path.exists():
+        if not os.path.exists(cadastral_file_path):
             raise HTTPException(status_code=404, detail="Cadastral structure file not found")
         
         with open(cadastral_file_path, 'r', encoding='utf-8') as f:
@@ -321,7 +333,20 @@ async def generate_map(file: UploadFile = File(...)):
         geojson_dict = json.loads(geojson_data)
         
         # Create folium map
-        m = folium.Map()
+        m = folium.Map(
+            location=[41.8719, 12.5674],  # Center on Italy
+            zoom_start=6,
+            tiles='OpenStreetMap'
+        )
+        
+        # Add additional basemap options
+        folium.TileLayer(
+            tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            attr='Esri',
+            name='Satellite',
+            overlay=False,
+            control=True
+        ).add_to(m)
         
         # Add GeoJSON layer
         folium.GeoJson(
@@ -331,8 +356,16 @@ async def generate_map(file: UploadFile = File(...)):
                 'color': 'black',
                 'weight': 2,
                 'fillOpacity': 0.7,
-            }
+            },
+            tooltip=folium.features.GeoJsonTooltip(
+                fields=list(geojson_dict['features'][0]['properties'].keys()) if geojson_dict['features'] else [],
+                aliases=list(geojson_dict['features'][0]['properties'].keys()) if geojson_dict['features'] else [],
+                localize=True
+            )
         ).add_to(m)
+        
+        # Add Python-generated Folium controls
+        m = map_controls.generate_folium_controls(m)
         
         # Fit bounds
         bounds = []
@@ -349,3 +382,49 @@ async def generate_map(file: UploadFile = File(...)):
     finally:
         # Clean up temp file
         Path(temp_file_path).unlink(missing_ok=True)
+
+
+@app.get("/get-controls/")
+async def get_controls():
+    """Get current control definitions and states"""
+    controls_data = {
+        "groups": [
+            {
+                "id": group.id,
+                "title": group.title,
+                "position": group.position,
+                "controls": [
+                    {
+                        "id": ctrl.id,
+                        "title": ctrl.title,
+                        "enabled": ctrl.enabled,
+                        "tooltip": ctrl.tooltip,
+                        "type": "button" if isinstance(ctrl, ControlButton) else "select",
+                        "icon": getattr(ctrl, 'icon', None),
+                        "onclick": getattr(ctrl, 'onclick', None),
+                        "options": getattr(ctrl, 'options', None),
+                        "onchange": getattr(ctrl, 'onchange', None),
+                        "default_value": getattr(ctrl, 'default_value', None)
+                    }
+                    for ctrl in group.controls
+                ]
+            }
+            for group in map_controls.control_groups
+        ]
+    }
+    return controls_data
+
+
+class ControlStateUpdate(BaseModel):
+    control_id: str
+    enabled: bool
+
+
+@app.post("/update-control-state/")
+async def update_control_state(update: ControlStateUpdate):
+    """Update the state of a specific control"""
+    success = map_controls.update_control_state(update.control_id, update.enabled)
+    if success:
+        return {"success": True, "message": f"Control {update.control_id} updated"}
+    else:
+        raise HTTPException(status_code=404, detail=f"Control {update.control_id} not found")

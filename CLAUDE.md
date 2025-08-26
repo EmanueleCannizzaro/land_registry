@@ -4,50 +4,99 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a QPKG Map Viewer application that allows users to upload QPKG files (QGIS project packages) and visualize their geospatial data on an interactive web map. The application is built with FastAPI backend and Leaflet frontend.
+This is a Land Registry Viewer application that allows users to visualize Italian cadastral (land registry) data. The application supports both file uploads (QPKG/GPKG) and direct loading of cadastral files from a structured Italian cadastral database. Built with FastAPI backend and Leaflet frontend with drawing capabilities.
 
 ## Architecture
 
-The project has a simple structure:
-- `app.py` - FastAPI application with endpoints for uploading QPKG files and serving the map interface
-- `map/map.py` - Core geospatial data extraction logic using geopandas and zipfile
-- `templates/map.html` - Frontend HTML with Leaflet.js for interactive mapping
+The project structure follows a FastAPI web application pattern:
+
+- **app/land_registry_app.py** - Main FastAPI application with REST endpoints
+- **app/map.py** - Core geospatial data processing (QPKG extraction, polygon adjacency analysis)
+- **app/templates/map.html** - Interactive web interface with Leaflet maps and drawing tools
+- **app/static/styles.css** - Application styling
+- **land_registry/generate_cadastral_form.py** - Utility to analyze and generate HTML forms for Italian cadastral data structure
+- **data/** - Contains JSON files with cadastral structure and drawn polygon data
 
 ## Key Dependencies
 
-- **FastAPI** - Web framework for the API endpoints
-- **folium** - Python library for generating Leaflet maps (used in one endpoint but not the main flow)
+- **FastAPI** (>=0.100.0) - Web framework and API endpoints
 - **geopandas** - Geospatial data processing and format conversion
-- **Leaflet.js** - Frontend mapping library (loaded from CDN)
+- **folium** - Alternative map generation (used in generate-map endpoint)
+- **SQLModel** (>=0.0.8) - Database modeling (appears unused in current implementation)
+- **Leaflet.js** - Frontend interactive mapping with drawing support
+- **Leaflet Draw** - Drawing tools for creating polygons and circles
 
 ## Development Commands
 
-Since there are no package.json, requirements.txt, or other standard configuration files, this appears to be a minimal Python project. To run the application:
+The project uses pyproject.toml with uv as the package manager:
 
 ```bash
-# Install dependencies manually
-pip install fastapi geopandas folium
+# Install dependencies
+uv sync
 
 # Run the development server
-uvicorn app:app --reload --host 0.0.0.0 --port 8000
+uvicorn app.land_registry_app:app --reload --host 0.0.0.0 --port 8000
+
+# Run tests
+uv run pytest
+
+# Run tests with coverage
+uv run pytest --cov=land_registry --cov-report=html
+
+# Format code
+uv run black .
+
+# Sort imports
+uv run isort .
+
+# Lint code
+uv run flake8
 ```
 
 ## API Endpoints
 
-- `POST /upload-qpkg/` - Upload QPKG file and extract geospatial data as GeoJSON
-- `GET /map/` - Serve the interactive map HTML page  
-- `POST /generate-map/` - Generate map HTML from QPKG (incomplete implementation in app.py:50-81)
+### File Upload & Processing
+- `GET /` - Serve main map application interface
+- `POST /upload-qpkg/` - Upload and process QPKG/GPKG files, extract geospatial data as GeoJSON
+- `POST /generate-map/` - Generate static folium map HTML from QPKG/GPKG files
 
-## Data Flow
+### Spatial Analysis
+- `POST /get-adjacent-polygons/` - Find polygons adjacent to a selected polygon using spatial relationships (touches/intersects/overlaps)
+- `GET /get-attributes/` - Retrieve all feature attributes from loaded geospatial data
 
-1. User uploads QPKG file via web interface
+### Cadastral Data Management
+- `GET /get-cadastral-structure/` - Load Italian cadastral data structure from JSON
+- `POST /load-cadastral-files/` - Load multiple cadastral files from structured Italian cadastral database
+- `POST /save-drawn-polygons/` - Save user-drawn polygons as GeoJSON files
+
+## Data Flow & Core Features
+
+### File Processing
+1. User uploads QPKG (QGIS project packages) or GPKG files via web interface
 2. Backend extracts ZIP contents and searches for geospatial files (.shp, .geojson, .gpkg, .kml)
-3. Uses geopandas to read first found geospatial file and convert to GeoJSON
-4. Frontend receives GeoJSON and renders on Leaflet map with popup attributes
+3. Uses geopandas to read geospatial data and convert to GeoJSON
+4. Frontend receives GeoJSON and renders on interactive Leaflet map
 
-## Important Notes
+### Spatial Analysis
+1. User selects a polygon on the map
+2. Backend analyzes spatial relationships using shapely geometry operations
+3. Finds adjacent polygons based on touch/intersect/overlap methods
+4. Returns selected polygon and adjacent polygons as separate GeoJSON layers
 
-- QPKG files are treated as ZIP archives
-- Static files served from `static/` directory (note: inconsistent paths between mount and file reading)
-- Temporary files created during processing are cleaned up automatically
-- The application expects geospatial data within the QPKG structure
+### Drawing & Data Creation
+1. Users can draw new polygons/circles using Leaflet Draw tools
+2. Drawn features are saved as GeoJSON files with timestamps
+3. Features can be imported back as new layers for analysis
+
+### Cadastral Database Integration
+1. Application reads structured Italian cadastral data (Regione > Provincia > Comune hierarchy)
+2. Users can select specific geographic areas and file types (MAP/PLE)
+3. Multiple cadastral files are loaded and combined for analysis
+
+## Important Technical Notes
+
+- **Global State**: Uses global `current_gdf` variable to store active GeoDataFrame across requests
+- **Temporary Files**: QPKG/GPKG uploads create temporary files that are automatically cleaned up
+- **Spatial Indexing**: Adjacency analysis relies on shapely spatial predicates (touches, intersects, overlaps)
+- **Italian Cadastral Structure**: Hardcoded path to cadastral database at `/media/emanuele/ddbb5477-3ef2-4097-b731-3784cb7767c1/catasto/ITALIA`
+- **Drawing Storage**: User-drawn polygons saved to `drawn_polygons/` directory with timestamps

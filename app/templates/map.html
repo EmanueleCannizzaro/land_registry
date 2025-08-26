@@ -126,44 +126,8 @@
                     <button id="mappingViewBtn" onclick="showMappingView()">Mapping</button>
                 </div>
                 
-                <!-- Navigation Controls -->
-                <div class="control-group-label" style="top: 240px; left: 15px; position: absolute; font-size: 11px; color: #666; font-weight: bold;">NAVIGATE</div>
-                <div class="map-controls" id="navigationControls" style="top: 60px; right: 10px;">
-                    <button onclick="zoomIn()" title="Zoom In">🔍+</button>
-                    <button onclick="zoomOut()" title="Zoom Out">🔍-</button>
-                    <button onclick="fitToPolygons()" title="Fit to All Polygons">🎯</button>
-                    <button onclick="fitToSelected()" title="Fit to Selected Polygons" id="fitSelectedBtn" disabled>📍</button>
-                </div>
-                
-                <!-- Selection & Drawing Tools -->
-                <div class="control-group-label" style="top: 220px; right: 15px; position: absolute; font-size: 11px; color: #666; font-weight: bold;">TOOLS</div>
-                <div class="map-controls" id="selectionDrawingControls" style="top: 240px; right: 10px;">
-                    <button onclick="togglePolygonSelectionMode()" title="Toggle Polygon Selection Mode" id="polygonSelectionBtn">✏️</button>
-                    <div class="control-separator"></div>
-                    <button onclick="startDrawingMode()" id="startDrawing" title="Start Drawing">🖊️</button>
-                    <button onclick="stopDrawingMode()" id="stopDrawing" title="Stop Drawing" disabled>⏹️</button>
-                    <button onclick="clearAllDrawings()" id="clearDrawings" title="Clear All Drawings">🗑️</button>
-                </div>
-                
-                <!-- View & Display Controls -->
-                <div class="control-group-label" style="top: 400px; right: 15px; position: absolute; font-size: 11px; color: #666; font-weight: bold;">DISPLAY</div>
-                <div class="map-controls" id="viewDisplayControls" style="top: 420px; right: 50px;">
-                    <button onclick="toggleLegend()" title="Toggle Legend" id="legendToggleBtn">📋</button>
-                    <button onclick="toggleSelectionInfo()" title="Toggle Selection Info" id="selectionInfoToggleBtn">ℹ️</button>
-                    <div class="control-separator"></div>
-                    <button onclick="togglePolygonsVisibility()" title="Toggle Polygons Visibility" id="togglePolygonsBtn">👁️</button>
-                    <button onclick="toggleBasemapVisibility()" title="Toggle Basemap Visibility" id="toggleBasemapBtn">🗺️</button>
-                </div>
-                
-                <!-- Data Operations -->
-                <div class="control-group-label" style="bottom: 140px; right: 15px; position: absolute; font-size: 11px; color: #666; font-weight: bold;">DATA</div>
-                <div class="map-controls" id="dataOperationsControls" style="bottom: 250px; right: 90px;">
-                    <button onclick="saveDrawingsToJSON()" id="saveDrawings" title="Save Drawings as JSON">💾</button>
-                    <button onclick="triggerLoadDrawings()" id="loadDrawings" title="Load Drawings">📁</button>
-                    <div class="control-separator"></div>
-                    <button onclick="exportSelection()" title="Export Selection" id="exportSelectionBtn" disabled>📤</button>
-                    <button onclick="importSelection()" title="Import Selection" id="importSelectionBtn">📥</button>
-                </div>
+                <!-- Python-Generated Map Controls -->
+                {{ controls_html | safe }}
                 
                 <!-- Hidden file input for loading drawings -->
                 <input type="file" id="loadDrawingsFile" accept=".json" onchange="loadDrawingsFromJSON(event)" style="display: none;">
@@ -325,10 +289,83 @@
         // Initialize map
         const map = L.map('map').setView([0, 0], 2);
         
-        // Add tile layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: 'OpenStreetMap contributors'
-        }).addTo(map);
+        // Define basemap layers
+        const basemapLayers = {
+            osm: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: 'OpenStreetMap contributors'
+            }),
+            google_roadmap: L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+                maxZoom: 20,
+                subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+                attribution: 'Google Maps'
+            }),
+            google_satellite: L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+                maxZoom: 20,
+                subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+                attribution: 'Google Satellite'
+            }),
+            google_terrain: L.tileLayer('https://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}', {
+                maxZoom: 20,
+                subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+                attribution: 'Google Terrain'
+            }),
+            google_hybrid: L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
+                maxZoom: 20,
+                subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+                attribution: 'Google Hybrid'
+            }),
+            google_transit: L.tileLayer('https://{s}.google.com/vt/lyrs=m,transit&x={x}&y={y}&z={z}', {
+                maxZoom: 20,
+                subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+                attribution: 'Google Maps Transit'
+            }),
+            google_traffic: L.tileLayer('https://{s}.google.com/vt/lyrs=m,traffic&x={x}&y={y}&z={z}', {
+                maxZoom: 20,
+                subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+                attribution: 'Google Maps Traffic'
+            }),
+            esri_world: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+            }),
+            esri_terrain: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles © Esri — Source: USGS, Esri, TANA, DeLorme, and NPS'
+            }),
+            cartodb_positron: L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '© OpenStreetMap contributors © CARTO'
+            }),
+            cartodb_dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '© OpenStreetMap contributors © CARTO'
+            }),
+            openweather_temp: L.tileLayer('https://tile.openweathermap.org/map/temp_new/{z}/{x}/{y}.png?appid=YOUR_API_KEY', {
+                attribution: 'Map data © OpenWeatherMap',
+                opacity: 0.6
+            }),
+            openweather_precipitation: L.tileLayer('https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=YOUR_API_KEY', {
+                attribution: 'Map data © OpenWeatherMap',
+                opacity: 0.6
+            }),
+            openweather_wind: L.tileLayer('https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png?appid=YOUR_API_KEY', {
+                attribution: 'Map data © OpenWeatherMap',
+                opacity: 0.6
+            }),
+            openweather_clouds: L.tileLayer('https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=YOUR_API_KEY', {
+                attribution: 'Map data © OpenWeatherMap',
+                opacity: 0.6
+            })
+        };
+        
+        // Initialize with OpenStreetMap
+        let currentBasemap = 'osm';
+        basemapLayers[currentBasemap].addTo(map);
+        
+        // Initialize draggable controls
+        initializeDraggableControls();
+        
+        // Initialize polygon selection button state
+        initializePolygonSelectionButton();
+        
+        // Python-generated JavaScript initialization
+        {{ controls_js | safe }}
         
         // Global variables for layer management
         let cadastralLayers = [];  // Array to store multiple cadastral layers
@@ -343,6 +380,7 @@
         let selectedPolygons = [];
         let currentSelectionMode = 'select';
         let polygonLayers = new Map(); // Store references to individual polygon layers
+        let polygonSelectionMode = true;
 
         function showStatus(message, type = 'success') {
             const statusDiv = document.getElementById('statusDiv');
@@ -565,6 +603,9 @@
                 map.removeLayer(currentLayer);
             }
 
+            // Clear polygon layers map
+            polygonLayers.clear();
+            
             // Add new GeoJSON layer
             currentLayer = L.geoJSON(geojson, {
                 style: {
@@ -573,6 +614,16 @@
                     opacity: 0.65
                 },
                 onEachFeature: function(feature, layer) {
+                    // Ensure feature has an ID
+                    if (feature.properties.feature_id === undefined) {
+                        const featureIndex = geojson.features.indexOf(feature);
+                        feature.properties.feature_id = featureIndex;
+                    }
+                    
+                    // Store layer reference for styling
+                    const featureId = getFeatureId(feature);
+                    polygonLayers.set(featureId, layer);
+                    
                     // Add popup with properties
                     if (feature.properties) {
                         const popupContent = Object.entries(feature.properties)
@@ -580,11 +631,28 @@
                             .join('<br>');
                         layer.bindPopup(popupContent);
                     }
+                    
+                    // Add click event for polygon selection
+                    layer.on('click', function(e) {
+                        console.log('Polygon clicked:', feature);
+                        console.log('Current selection mode:', currentSelectionMode);
+                        
+                        if (currentSelectionMode === 'select') {
+                            console.log('Multi-selection mode: toggling selection');
+                            togglePolygonSelection(feature, layer);
+                        } else {
+                            console.log('Adjacency mode: selecting polygon');
+                            selectPolygon(feature, layer);
+                        }
+                        e.originalEvent.stopPropagation();
+                    });
                 }
             }).addTo(map);
 
             // Fit map to layer bounds
-            map.fitBounds(currentLayer.getBounds());
+            if (currentLayer && currentLayer.getBounds) {
+                map.fitBounds(currentLayer.getBounds());
+            }
         }
 
         function showAllPolygons() {
@@ -988,13 +1056,32 @@
             try {
                 showStatus('Loading attributes...', 'success');
                 
-                const response = await fetch('/get-attributes/');
-                
-                if (!response.ok) {
-                    throw new Error('Failed to load attributes');
+                // Extract attributes directly from originalData instead of server call
+                const features = originalData.features || [];
+                if (features.length === 0) {
+                    throw new Error('No features found in the data');
                 }
-
-                attributesData = await response.json();
+                
+                // Get all unique column names from all features
+                const columnSet = new Set();
+                features.forEach(feature => {
+                    if (feature.properties) {
+                        Object.keys(feature.properties).forEach(key => columnSet.add(key));
+                    }
+                });
+                
+                const columns = Array.from(columnSet);
+                
+                // Create the attributes data structure
+                attributesData = {
+                    columns: columns,
+                    total_features: features.length,
+                    features: features.map((feature, index) => ({
+                        index: index,
+                        ...feature.properties
+                    }))
+                };
+                
                 showStatus(`Loaded attributes for ${attributesData.total_features} features`, 'success');
                 return attributesData;
                 
@@ -1282,8 +1369,20 @@
         }
 
         async function handleTableViewClick() {
+            // Always switch to table view first
+            showTableView();
+            
             if (!originalData) {
-                showStatus('Please upload a file first', 'error');
+                // Show message that no data is loaded
+                const tableBody = document.getElementById('mainAttributesTableBody');
+                const tableHead = document.getElementById('mainAttributesTableHead');
+                const attributesInfo = document.getElementById('mainAttributesInfo');
+                
+                if (tableHead) tableHead.innerHTML = '';
+                if (tableBody) tableBody.innerHTML = '<tr><td colspan="100%" class="no-data">No data loaded. Please upload a QPKG/GPKG file or load cadastral data first.</td></tr>';
+                if (attributesInfo) attributesInfo.innerHTML = 'No data loaded';
+                
+                showStatus('Please upload a file first to view attributes table', 'error');
                 return;
             }
 
@@ -1295,9 +1394,11 @@
                     displayMainAttributesTable(data);
                     updateAttributesStatus(`${data.total_features} features, ${data.columns.length} attributes loaded`);
                 }
+            } else {
+                // Data already loaded, just display it
+                displayMainAttributesTable(attributesData);
+                updateAttributesStatus(`${attributesData.total_features} features, ${attributesData.columns.length} attributes loaded`);
             }
-            
-            showTableView();
         }
 
         function displayMainAttributesTable(data) {
@@ -1735,6 +1836,44 @@
             }
         }
 
+        function switchBasemap() {
+            const selector = document.getElementById('basemapSelector');
+            if (!selector) return;
+            
+            const newBasemap = selector.value;
+            const weatherLayers = ['openweather_temp', 'openweather_precipitation', 'openweather_wind', 'openweather_clouds'];
+            const isWeatherLayer = weatherLayers.includes(newBasemap);
+            const isCurrentWeatherLayer = weatherLayers.includes(currentBasemap);
+            
+            // Remove current layers
+            if (basemapLayers[currentBasemap]) {
+                map.removeLayer(basemapLayers[currentBasemap]);
+            }
+            
+            // For weather layers, add OpenStreetMap as base layer first
+            if (isWeatherLayer) {
+                // Add base layer (OSM) if not already there
+                if (!isCurrentWeatherLayer) {
+                    basemapLayers.osm.addTo(map);
+                }
+                // Add weather overlay layer
+                if (basemapLayers[newBasemap]) {
+                    basemapLayers[newBasemap].addTo(map);
+                    currentBasemap = newBasemap;
+                }
+            } else {
+                // Regular basemap switch
+                if (basemapLayers[newBasemap]) {
+                    basemapLayers[newBasemap].addTo(map);
+                    currentBasemap = newBasemap;
+                }
+            }
+            
+            // Update selector display
+            const selectedOption = selector.options[selector.selectedIndex];
+            showStatus(`Switched to ${selectedOption.text}`, 'success');
+        }
+
         function fitToPolygons() {
             if (allPolygonsLayer && map) {
                 try {
@@ -1777,18 +1916,32 @@
         }
 
         // Update fit to selected button state
-        function updateFitSelectedButton() {
+        async function updateFitSelectedButton() {
             const btn = document.getElementById('fitSelectedBtn');
+            const shouldEnable = selectedPolygons.length > 0;
+            
             if (btn) {
-                btn.disabled = selectedPolygons.length === 0;
+                btn.disabled = !shouldEnable;
+                
+                // Sync with Python backend
+                if (typeof syncControlState === 'function') {
+                    await syncControlState('fitSelectedBtn', shouldEnable);
+                }
             }
         }
 
         // Update export selection button state
-        function updateExportSelectionButton() {
+        async function updateExportSelectionButton() {
             const btn = document.getElementById('exportSelectionBtn');
+            const shouldEnable = selectedPolygons.length > 0;
+            
             if (btn) {
-                btn.disabled = selectedPolygons.length === 0;
+                btn.disabled = !shouldEnable;
+                
+                // Sync with Python backend
+                if (typeof syncControlState === 'function') {
+                    await syncControlState('exportSelectionBtn', shouldEnable);
+                }
             }
         }
 
@@ -2158,11 +2311,14 @@
                 
                 // Transform the raw data to our expected format
                 cadastralData = transformRawCadastralData(rawData);
+                console.log('Transformed cadastral data:', Object.keys(cadastralData).length, 'regions');
                 
                 // Populate interface with real data
                 populateRegionsDropdown();
                 updateCadastralStats();
                 updateCadastralSelection();
+                
+                console.log('Cadastral data loading completed successfully');
                 
             } catch (error) {
                 console.error('Failed to load cadastral data from API:', error);
@@ -2189,6 +2345,7 @@
         }
 
         function transformRawCadastralData(rawData) {
+            console.log('transformRawCadastralData called with data keys:', Object.keys(rawData));
             const transformedData = {};
             
             Object.entries(rawData).forEach(([region, provinces]) => {
@@ -2499,6 +2656,7 @@
 
         // Function to update cadastral stats based on data
         function updateCadastralStats() {
+            console.log('updateCadastralStats called, cadastralData keys:', Object.keys(cadastralData));
             const regionCount = Object.keys(cadastralData).length;
             let provinceCount = 0;
             let municipalityCount = 0;
@@ -2513,11 +2671,15 @@
                     municipalityCount += municipalities.length;
                     
                     municipalities.forEach(municipality => {
-                        const municipalityFiles = regionData[province][municipality].files;
-                        // Count files across all file types (MAP, PLE)
-                        Object.values(municipalityFiles).forEach(typeFiles => {
-                            fileCount += typeFiles.length;
-                        });
+                        const municipalityData = regionData[province][municipality];
+                        if (municipalityData && municipalityData.files) {
+                            // Count files across all file types (MAP, PLE)
+                            Object.values(municipalityData.files).forEach(typeFiles => {
+                                if (Array.isArray(typeFiles)) {
+                                    fileCount += typeFiles.length;
+                                }
+                            });
+                        }
                     });
                 });
             });
@@ -2533,6 +2695,7 @@
 
         // Function to populate regions dropdown from loaded data
         function populateRegionsDropdown() {
+            console.log('populateRegionsDropdown called');
             const regionSelect = document.getElementById('cadastralRegions');
             
             if (!regionSelect) {
@@ -2997,7 +3160,6 @@
         let drawControl = null;
         let drawnItems = new L.FeatureGroup();
         let isDrawingMode = false;
-        let polygonSelectionMode = false;
 
         // Add drawn items layer to map
         map.addLayer(drawnItems);
@@ -3323,6 +3485,86 @@
                 }
             }, 100); // Small delay to ensure layer removal is complete
         });
+
+        // Function to initialize draggable controls
+        function initializeDraggableControls() {
+            const draggableElements = document.querySelectorAll('.map-controls, .view-toggle');
+            
+            draggableElements.forEach(element => {
+                let isDragging = false;
+                let dragStartX, dragStartY;
+                let elementStartX, elementStartY;
+                
+                // Handle mouse down on the element or header
+                const dragHandle = element.querySelector('.control-group-header') || element;
+                dragHandle.addEventListener('mousedown', startDrag);
+                
+                function startDrag(e) {
+                    if (e.target.tagName === 'BUTTON') return; // Don't drag when clicking buttons
+                    
+                    isDragging = true;
+                    element.classList.add('dragging');
+                    
+                    dragStartX = e.clientX;
+                    dragStartY = e.clientY;
+                    
+                    const rect = element.getBoundingClientRect();
+                    elementStartX = rect.left;
+                    elementStartY = rect.top;
+                    
+                    document.addEventListener('mousemove', drag);
+                    document.addEventListener('mouseup', stopDrag);
+                    
+                    e.preventDefault();
+                }
+                
+                function drag(e) {
+                    if (!isDragging) return;
+                    
+                    const deltaX = e.clientX - dragStartX;
+                    const deltaY = e.clientY - dragStartY;
+                    
+                    const newX = elementStartX + deltaX;
+                    const newY = elementStartY + deltaY;
+                    
+                    // Keep within viewport bounds
+                    const maxX = window.innerWidth - element.offsetWidth;
+                    const maxY = window.innerHeight - element.offsetHeight;
+                    
+                    const boundedX = Math.max(0, Math.min(newX, maxX));
+                    const boundedY = Math.max(0, Math.min(newY, maxY));
+                    
+                    element.style.left = boundedX + 'px';
+                    element.style.top = boundedY + 'px';
+                    element.style.right = 'auto';
+                    element.style.bottom = 'auto';
+                }
+                
+                function stopDrag() {
+                    isDragging = false;
+                    element.classList.remove('dragging');
+                    
+                    document.removeEventListener('mousemove', drag);
+                    document.removeEventListener('mouseup', stopDrag);
+                }
+            });
+        }
+
+        // Function to initialize polygon selection button state
+        function initializePolygonSelectionButton() {
+            // Use setTimeout to ensure DOM is fully loaded
+            setTimeout(() => {
+                const btn = document.getElementById('polygonSelectionBtn');
+                if (btn && polygonSelectionMode) {
+                    btn.style.background = '#007cba';
+                    btn.style.color = 'white';
+                    btn.title = 'Polygon Selection Mode: ON - Click polygons to select';
+                    console.log('Polygon selection button initialized');
+                } else {
+                    console.log('Polygon selection button not found or mode is false');
+                }
+            }, 100);
+        }
 
     </script>
 </body>
