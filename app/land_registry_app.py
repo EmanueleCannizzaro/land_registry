@@ -336,14 +336,60 @@ async def generate_map(file: UploadFile = File(...)):
         m = folium.Map(
             location=[41.8719, 12.5674],  # Center on Italy
             zoom_start=6,
-            tiles='OpenStreetMap'
+            tiles='OpenStreetMap' # Default basemap
         )
         
-        # Add additional basemap options
+        # Add various basemap options
         folium.TileLayer(
             tiles='https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
             attr='Esri',
-            name='Satellite',
+            name='Esri Satellite', # Changed name for clarity
+            overlay=False,
+            control=True
+        ).add_to(m)
+
+        # Google Maps (requires custom URLs)
+        folium.TileLayer(
+            tiles='https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+            attr='Google Maps',
+            name='Google Roadmap',
+            overlay=False,
+            control=True
+        ).add_to(m)
+        folium.TileLayer(
+            tiles='https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+            attr='Google Satellite',
+            name='Google Satellite',
+            overlay=False,
+            control=True
+        ).add_to(m)
+        folium.TileLayer(
+            tiles='https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
+            attr='Google Terrain',
+            name='Google Terrain',
+            overlay=False,
+            control=True
+        ).add_to(m)
+        folium.TileLayer(
+            tiles='https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+            attr='Google Hybrid',
+            name='Google Hybrid',
+            overlay=False,
+            control=True
+        ).add_to(m)
+
+        # CartoDB
+        folium.TileLayer(
+            tiles='CartoDB positron',
+            attr='CartoDB',
+            name='CartoDB Light',
+            overlay=False,
+            control=True
+        ).add_to(m)
+        folium.TileLayer(
+            tiles='CartoDB dark_matter',
+            attr='CartoDB',
+            name='CartoDB Dark',
             overlay=False,
             control=True
         ).add_to(m)
@@ -366,6 +412,10 @@ async def generate_map(file: UploadFile = File(...)):
         
         # Add Python-generated Folium controls
         m = map_controls.generate_folium_controls(m)
+
+        # Add custom HTML controls and JavaScript to the map
+        folium.Html(map_controls.generate_html(), script=True).add_to(m)
+        folium.Javascript(map_controls.generate_javascript()).add_to(m)
         
         # Fit bounds
         bounds = []

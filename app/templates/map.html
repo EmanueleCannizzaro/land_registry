@@ -192,7 +192,7 @@
                             <button onclick="selectKeyColumns()">Key Columns Only</button>
                             <button onclick="toggleColumnSelector()">Hide</button>
                         </div>
-                        <div id="columnCheckboxes" class="column-checkboxes"></div>
+                        <div class="column-checkboxes"></div>
                     </div>
                     <div class="attributes-table-container">
                         <div style="padding: 10px; border-bottom: 1px solid #ddd; background: #f8f9fa;">
@@ -990,7 +990,7 @@
             let infoHTML = `
                 <div class="feature-info selected-info">
                     <h4>Selected Polygons (${selectedFeatures.length})</h4>
-                    <p><strong>Feature IDs:</strong> ${selectedFeatures.map(f => getFeatureId(f)).join(', ')}</p>
+                    <p><strong>Feature ID:</strong> ${selectedFeatures.map(f => getFeatureId(f)).join(', ')}</p>
                     <p><strong>Total Adjacent:</strong> ${adjacentIds.length}</p>
                 </div>
             `;
@@ -1103,11 +1103,11 @@
                 if (data) {
                     displayMainAttributesTable(data);
                     updateAttributesStatus(`${data.total_features} features, ${data.columns.length} attributes loaded`);
-                } else {
-                    updateAttributesStatus('Failed to load attributes data');
                 }
-            } catch (error) {
-                updateAttributesStatus('Error loading attributes: ' + error.message);
+            } else {
+                // Data already loaded, just display it
+                displayMainAttributesTable(attributesData);
+                updateAttributesStatus(`${attributesData.total_features} features, ${attributesData.columns.length} attributes loaded`);
             }
         }
 
@@ -1138,16 +1138,30 @@
         }
 
         function displayAttributesTable(data) {
-            const tableContainer = document.getElementById('attributesTableContainer');
-            const tableHead = document.getElementById('attributesTableHead');
-            const tableBody = document.getElementById('attributesTableBody');
-            const attributesInfo = document.getElementById('attributesInfo');
+            console.log('Displaying main attributes table with data:', data); // Debug log
             
-            // Show table container
-            tableContainer.style.display = 'block';
+            const tableHead = document.getElementById('mainAttributesTableHead');
+            const tableBody = document.getElementById('mainAttributesTableBody');
+            const attributesInfo = document.getElementById('mainAttributesInfo');
+            
+            if (!tableHead || !tableBody || !attributesInfo) {
+                console.error('Table elements not found!');
+                return;
+            }
+            
+            // Initialize columns arrays if needed
+            if (allColumns.length === 0) {
+                allColumns = [...data.columns];
+                selectKeyColumns(); // Show only key columns by default
+                createColumnCheckboxes();
+                updateVisibleColumnsInfo();
+            }
+            
+            // Filter columns based on visibility selection
+            const displayColumns = visibleColumns.length > 0 ? visibleColumns : data.columns;
             
             // Update info
-            attributesInfo.innerHTML = `${data.total_features} features, ${data.columns.length} attributes`;
+            attributesInfo.innerHTML = `${data.total_features} features, showing ${displayColumns.length} of ${data.columns.length} attributes`;
             
             // Clear existing content
             tableHead.innerHTML = '';
@@ -2267,7 +2281,6 @@
             
             if (tabType === 'file') {
                 tabs[0].classList.add('active');
-                document.getElementById('fileUpload').classList.add('active');
                 document.getElementById('fileUpload').style.display = 'block';
                 document.getElementById('cadastralSelection').style.display = 'none';
             } else if (tabType === 'cadastral') {
@@ -2467,7 +2480,7 @@
             
             // Get selected file types from checkboxes
             selectedFileTypes = [];
-            const fileTypeCheckboxes = document.querySelectorAll('#cadastralFileTypes input[type=\"checkbox\"]:checked');
+            const fileTypeCheckboxes = document.querySelectorAll('#cadastralFileTypes input[type="checkbox"]:checked');
             fileTypeCheckboxes.forEach(checkbox => {
                 selectedFileTypes.push(checkbox.value);
             });
@@ -3079,7 +3092,7 @@
             updateMappingTable();
             
             // Show success message
-            document.getElementById('mainMappingInfo').innerHTML = 
+            document.getElementById('mainMappingInfo').innerHTML =
                 `Analysis complete! Found relationships between ${drawnItems.getLayers().length} drawn polygons and loaded cadastral zones.`;
         }
 

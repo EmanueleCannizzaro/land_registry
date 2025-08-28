@@ -25,7 +25,7 @@ class ControlSelect:
     """Dropdown/select control definition"""
     id: str
     title: str
-    options: List[Dict[str, Any]]  # [{"value": "osm", "label": "OpenStreetMap"}, ...]
+    options: List[Dict[str, Any]]  # [{"value": "osm", "label": "OpenStreetMap"}, ...] # noqa
     onchange: str
     enabled: bool = True
     tooltip: Optional[str] = None
@@ -59,22 +59,8 @@ class MapControlsManager:
             position={"top": "80px", "right": "10px"},
             controls=[
                 ControlButton(
-                    id="zoomInBtn",
-                    title="Zoom In",
-                    icon="🔍+",
-                    onclick="zoomIn()",
-                    tooltip="Zoom into the map"
-                ),
-                ControlButton(
-                    id="zoomOutBtn", 
-                    title="Zoom Out",
-                    icon="🔍-",
-                    onclick="zoomOut()",
-                    tooltip="Zoom out of the map"
-                ),
-                ControlButton(
                     id="fitToPolygonsBtn",
-                    title="Fit to All Polygons", 
+                    title="Fit to All Polygons",
                     icon="🎯",
                     onclick="fitToPolygons()",
                     tooltip="Fit map to show all polygons"
@@ -102,28 +88,6 @@ class MapControlsManager:
                     icon="✏️",
                     onclick="togglePolygonSelectionMode()",
                     tooltip="Enable/disable polygon selection"
-                ),
-                ControlButton(
-                    id="startDrawing", 
-                    title="Start Drawing",
-                    icon="🖊️",
-                    onclick="startDrawingMode()",
-                    tooltip="Start drawing new polygons"
-                ),
-                ControlButton(
-                    id="stopDrawing",
-                    title="Stop Drawing", 
-                    icon="⏹️",
-                    onclick="stopDrawingMode()",
-                    enabled=False,
-                    tooltip="Stop drawing mode"
-                ),
-                ControlButton(
-                    id="clearDrawings",
-                    title="Clear All Drawings",
-                    icon="🗑️", 
-                    onclick="clearAllDrawings()",
-                    tooltip="Clear all drawn polygons"
                 )
             ]
         )
@@ -154,13 +118,6 @@ class MapControlsManager:
                     icon="👁️",
                     onclick="togglePolygonsVisibility()", 
                     tooltip="Show/hide all polygons"
-                ),
-                ControlButton(
-                    id="toggleBasemapBtn",
-                    title="Toggle Basemap Visibility", 
-                    icon="🗺️",
-                    onclick="toggleBasemapVisibility()",
-                    tooltip="Switch basemap layers"
                 )
             ]
         )
@@ -203,45 +160,11 @@ class MapControlsManager:
             ]
         )
         
-        # Basemap Selection Controls
-        basemap_controls = ControlGroup(
-            id="basemapControls",
-            title="Basemap",
-            position={"bottom": "200px", "right": "10px"},
-            controls=[
-                ControlSelect(
-                    id="basemapSelector",
-                    title="Select Basemap",
-                    options=[
-                        {"value": "osm", "label": "🗺️ OpenStreetMap"},
-                        {"value": "google_roadmap", "label": "📍 Google Maps"},
-                        {"value": "google_satellite", "label": "🛰️ Google Satellite"},
-                        {"value": "google_terrain", "label": "⛰️ Google Terrain"},
-                        {"value": "google_hybrid", "label": "🌍 Google Hybrid"},
-                        {"value": "google_transit", "label": "🚌 Google Transit"},
-                        {"value": "google_traffic", "label": "🚗 Google Traffic"},
-                        {"value": "esri_world", "label": "🌐 ESRI World Imagery"},
-                        {"value": "esri_terrain", "label": "🏔️ ESRI Terrain"},
-                        {"value": "cartodb_positron", "label": "⚪ CartoDB Light"},
-                        {"value": "cartodb_dark", "label": "⚫ CartoDB Dark"},
-                        {"value": "openweather_temp", "label": "🌡️ Temperature"},
-                        {"value": "openweather_precipitation", "label": "🌧️ Precipitation"},
-                        {"value": "openweather_wind", "label": "💨 Wind Speed"},
-                        {"value": "openweather_clouds", "label": "☁️ Cloud Coverage"}
-                    ],
-                    onchange="switchBasemap()",
-                    default_value="osm",
-                    tooltip="Choose the map background layer"
-                )
-            ]
-        )
-        
         self.control_groups = [
             navigation_controls,
             tools_controls, 
             display_controls,
-            data_controls,
-            basemap_controls
+            data_controls
         ]
     
     def generate_html(self) -> str:
@@ -254,7 +177,8 @@ class MapControlsManager:
             
             group_html = f'''
                 <!-- {group.title} Controls -->
-                <div class="map-controls" id="{group.id}" style="{position_style};">
+                <div class="map-controls" id="{group.id}" style="{position_style};
+">
                     <div class="control-group-header">{group.title}</div>
             '''
             
@@ -262,9 +186,7 @@ class MapControlsManager:
             for i, control in enumerate(group.controls):
                 # Add separator for certain controls (drawing tools)
                 if hasattr(control, 'id'):
-                    if control.id == "startDrawing" and i > 0:
-                        group_html += '                    <div class="control-separator"></div>\n'
-                    elif control.id == "selectionInfoToggleBtn" and i > 0:
+                    if control.id == "selectionInfoToggleBtn" and i > 0:
                         group_html += '                    <div class="control-separator"></div>\n'
                     elif control.id == "loadDrawings" and i > 0:
                         group_html += '                    <div class="control-separator"></div>\n'
@@ -274,21 +196,18 @@ class MapControlsManager:
                     # Button HTML
                     disabled_attr = ' disabled' if not control.enabled else ''
                     tooltip_attr = f' title="{control.tooltip}"' if control.tooltip else f' title="{control.title}"'
-                    
                     group_html += f'                    <button onclick="{control.onclick}" id="{control.id}"{tooltip_attr}{disabled_attr}>{control.icon}</button>\n'
                     
                 elif isinstance(control, ControlSelect):
                     # Select dropdown HTML
                     disabled_attr = ' disabled' if not control.enabled else ''
                     tooltip_attr = f' title="{control.tooltip}"' if control.tooltip else f' title="{control.title}"'
-                    
-                    group_html += f'                    <select id="{control.id}" onchange="{control.onchange}"{tooltip_attr}{disabled_attr}>\n'
+                    group_html += f'                    <select id="{control.id}" onchange="{control.onchange}"{tooltip_attr}{disabled_attr}>'
                     
                     for option in control.options:
                         selected_attr = ' selected' if control.default_value and option["value"] == control.default_value else ''
                         group_html += f'                        <option value="{option["value"]}"{selected_attr}>{option["label"]}</option>\n'
-                    
-                    group_html += '                    </select>\n'
+                    group_html += '                    </select>'
             
             group_html += '                </div>\n'
             html_parts.append(group_html)

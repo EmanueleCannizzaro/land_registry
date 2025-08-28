@@ -655,6 +655,38 @@ button:hover {
 }
 
 /* Enhanced map controls styling */
+.view-toggle {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    z-index: 1000;
+    display: flex;
+    gap: 0;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    border-radius: 16px;
+    background: rgba(255,255,255,0.98);
+    backdrop-filter: blur(15px);
+    overflow: hidden;
+    cursor: grab; /* Change to grab cursor */
+    user-select: none;
+    transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Refined transition */
+    border: 1px solid rgba(255,255,255,0.4);
+    will-change: transform; /* Add will-change */
+}
+
+.view-toggle:hover {
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    background: rgba(255,255,255,1);
+    transform: translateY(-1px);
+}
+
+.view-toggle.dragging {
+    transform: scale(1.08) translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+    z-index: 9999;
+    cursor: grabbing; /* Change to grabbing cursor */
+}
+
 .map-controls {
     position: absolute;
     z-index: 1000;
@@ -666,11 +698,12 @@ button:hover {
     background: rgba(255,255,255,0.98);
     backdrop-filter: blur(15px);
     padding: 12px;
-    cursor: move;
+    cursor: grab; /* Change to grab cursor */
     user-select: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Refined transition */
     border: 1px solid rgba(255,255,255,0.4);
     max-width: 220px;
+    will-change: transform; /* Add will-change */
 }
 
 .map-controls:hover {
@@ -683,6 +716,30 @@ button:hover {
     transform: scale(1.08) translateY(-4px);
     box-shadow: 0 12px 40px rgba(0,0,0,0.3);
     z-index: 9999;
+    cursor: grabbing; /* Change to grabbing cursor */
+}
+
+/* Map info controls (left side) */
+.map-info-controls {
+    position: absolute;
+    top: 120px;
+    left: 15px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2); /* Slightly more pronounced shadow */
+    border: 1px solid rgba(255,255,255,0.4);
+    cursor: grab; /* Add grab cursor */
+    will-change: transform; /* Add will-change */
+}
+
+.map-info-controls.dragging {
+    cursor: grabbing; /* Change to grabbing cursor */
 }
 
 .control-group-header {
