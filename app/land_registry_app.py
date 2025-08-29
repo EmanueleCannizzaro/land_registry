@@ -191,7 +191,10 @@ async def load_cadastral_files(request: CadastralFileRequest):
         raise HTTPException(status_code=400, detail="No files specified")
     
     # Assume cadastral files are in a specific directory structure
-    cadastral_base_path = Path("/media/emanuele/ddbb5477-3ef2-4097-b731-3784cb7767c1/catasto/ITALIA")
+    cadastral_base_path = "s3://catasto-2025/ITALIA/"
+    
+    # Check if the base path is an S3 path
+    is_s3_path = cadastral_base_path.startswith("s3://")
     
     try:
         layers = []
